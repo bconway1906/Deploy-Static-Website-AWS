@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-In this DevOps project, I hosted an HTML website on AWS, specifically on a single EC2 instance within the default VPC. The following steps outline the process I followed, along with the associated scripts and resources.
+In this project, I hosted an HTML website on AWS, specifically on a single EC2 instance within the default VPC. The following steps outline the process, along with the associated scripts and resources.
 
 ## Steps and Explanations
 
