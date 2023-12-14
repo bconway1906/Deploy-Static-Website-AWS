@@ -94,4 +94,5 @@ I recently wrapped up a DevOps project where the goal was to host a static HTML 
 
 This project achieved the goal of hosting a static website on AWS with a three-tier architecture. The infrastructure is designed to ensure resilience, scalability, and effective management of web traffic.
 
+<img width="1354" alt="Screenshot 2023-12-14 at 2 52 49 PM" src="https://github.com/bconway1906/Static-Website-AWS/assets/148906255/d89b6dcd-e116-457b-bfb7-5d0d6e2c36a8">
    
