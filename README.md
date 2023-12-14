@@ -1,60 +1,67 @@
-# HTML Website Hosting on AWS EC2
+# AWS Static Website Deployment
 
-<img width="1387" alt="Screenshot 2023-12-13 at 2 51 42 PM" src="https://github.com/bconway1906/Host-HTML-Website-on-AWS/assets/148906255/1d4316c2-a5a5-4deb-b6be-6604b724d203">
+## Overview
 
-## Project Overview
+This project demonstrates the deployment of a static HTML website on AWS using various services to ensure high availability, fault tolerance, and security. The infrastructure is set up in a Virtual Private Cloud (VPC) with public and private subnets across two availability zones.
 
-In this project, I hosted an HTML website on AWS, specifically on a single EC2 instance within the default VPC. The following steps outline the process, along with the associated scripts and resources.
+## Project Architecture
 
-## Steps and Explanations
+![Reference_Architecture](https://github.com/bconway1906/Deploy-Static-Website-AWS/assets/148906255/8fb30e4a-0e6e-4965-96f1-ddef62aaa559)
 
-### 1. Region Selection
+### Components:
 
-I chose the North Virginia region (US-East-1) for its performance and availability benefits.
+1. **VPC Configuration:**
+   - A VPC is created with public and private subnets spread across two availability zones for high availability and fault tolerance.
 
-### 2. Security Group Configuration
+2. **Internet Gateway:**
+   - An Internet Gateway is utilized to allow communication between instances in the VPC and the internet.
 
-To control inbound and outbound traffic, I created a security group with the following inbound rules:
-- HTTP Port 80 from anywhere (IPv4): Allows web traffic.
-- SSH Port 22 from MyIP: Provides secure SSH access.
+3. **Security Groups:**
+   - Security Groups are configured to act as a firewall for EC2 instances, controlling inbound and outbound traffic.
 
-### 3. EC2 Instance Launch
+4. **Availability Zones:**
+   - Resources such as Nat Gateway, Bastion Host, and Application Load Balancer (ALB) use public subnets spread across multiple availability zones.
 
-Launched an EC2 instance and associated it with the previously created security group.
+5. **EC2 Instance Connect:**
+   - EC2 Instance Connect is used for secure SSH access to resources in both public and private subnets.
 
-### 4. Key Pair Creation
+6. **Private Subnets:**
+   - Web servers and database servers are placed in private subnets to enhance security.
 
-During EC2 instance creation, I generated a new key pair. AWS provided a private key file (.pem), which I downloaded and securely stored. This key pair is crucial for SSH access to the EC2 instance.
+7. **Nat Gateway:**
+   - The Nat Gateway allows instances in private subnets to access the internet securely.
 
-### 5. SSH Access
+8. **EC2 Instances:**
+   - EC2 instances host the static HTML website. The instances are part of an Auto Scaling Group (ASG) for high availability.
 
-Used the terminal and the key pair to SSH into the EC2 instance, copying the Public IPv4 address.
+9. **Application Load Balancer:**
+   - An ALB is used to distribute web traffic across the Auto Scaling Group of EC2 instances in multiple availability zones.
+
+10. **Auto Scaling Group:**
+    - ASG dynamically creates and manages EC2 instances, ensuring the website is highly available, scalable, fault-tolerant, and elastic.
+
+11. **Route 53:**
+    - Route 53 is used to register the domain name and create a record set for the static website.
+
+12. **GitHub:**
+    - GitHub is used to store web files, allowing for version control and easy deployment.
+
+### Deployment Script:
 
 ```bash
-ssh -i path/to/keypair.pem ec2-user@your-public-ipv4-address
+#!/bin/bash
+sudo su
+yum update -y
+yum install -y httpd
+cd /var/www/html
+wget https://github.com/bconway1906/staticsite/raw/main/static-main.zip
+unzip static-main.zip
+cp -r /var/www/html/static-main/* /var/www/html
+rm -rf static-main.zip static-main
+systemctl enable httpd
+systemctl start httpd
 ```
-
-### 6. HTML Website Deployment Script
-
-Executed the following script to deploy the HTML website:
-
-```bash
-sudo su                 # Switched to the root user for necessary privileges.
-yum update -y           # Updated the instance with security patches and updates.
-yum install -y httpd    # Installed Apache, the web server software.
-cd /var/www/html        # Changed the directory to the HTML folder.
-wget https://github.com/azeezsalu/techmax/archive/refs/heads/main.zip   # Downloaded the website files.
-unzip main.zip          # Unzipped the downloaded folder.
-cp -r techmax-main/* /var/www/html/    # Copied files to the HTML directory.
-rm -rf techmax-main main.zip           # Deleted unnecessary folders.
-systemctl enable httpd  # Enabled the Apache server.
-systemctl start httpd   # Started the Apache server.
-```
-
-### 7. Website Access
-
-Copied the Public IPv4 address to access the newly hosted HTML website.
 
 ## Conclusion
 
-The project successfully hosted an HTML website on an AWS EC2 instance in the default VPC.
+This project demonstrates a comprehensive setup for hosting a static website on AWS, utilizing various services to achieve high availability, security, and scalability. The provided deployment script simplifies the process of installing and running the web application on EC2 instances. 
