@@ -1,67 +1,97 @@
-# AWS Static Website Deployment
+# Deploying a Three-Tier AWS Architecture for a Static Website
 
-## Overview
+## Project Background:
 
-This project demonstrates the deployment of a static HTML website on AWS using various services to ensure high availability, fault tolerance, and security. The infrastructure is set up in a Virtual Private Cloud (VPC) with public and private subnets across two availability zones.
+I recently wrapped up a DevOps project where the goal was to host a static HTML website on AWS. The focus was on building a robust infrastructure for the website, making it highly available, fault-tolerant, and scalable.
 
-## Project Architecture
+![Final Architecture](https://github.com/bconway1906/Static-Website-AWS/assets/148906255/cb325ba8-3bf4-43ff-9d62-1d3c96e50dc0)
 
-![Reference_Architecture](https://github.com/bconway1906/Deploy-Static-Website-AWS/assets/148906255/8fb30e4a-0e6e-4965-96f1-ddef62aaa559)
+## Architecture Overview:
 
-### Components:
+### Three-Tier VPC Setup:
 
-1. **VPC Configuration:**
-   - A VPC is created with public and private subnets spread across two availability zones for high availability and fault tolerance.
+1. **Tiers Setup:**
+   - Created a three-tier AWS VPC with public and private subnets in 2 availability zones.
 
-2. **Internet Gateway:**
-   - An Internet Gateway is utilized to allow communication between instances in the VPC and the internet.
+2. **Subnet Organization:**
+   - Tier 1 housed the public subnet with Nat Gateway, Load Balancer, and Bastion Host.
+   - Tier 2 had the private subnet for webservers.
+   - Tier 3 featured another private subnet for the database.
 
-3. **Security Groups:**
-   - Security Groups are configured to act as a firewall for EC2 instances, controlling inbound and outbound traffic.
+### Infrastructure Steps:
 
-4. **Availability Zones:**
-   - Resources such as Nat Gateway, Bastion Host, and Application Load Balancer (ALB) use public subnets spread across multiple availability zones.
+1. **VPC Creation:**
+   - Started by setting up a VPC named "Dev VPC."
 
-5. **EC2 Instance Connect:**
-   - EC2 Instance Connect is used for secure SSH access to resources in both public and private subnets.
+2. **DNS Hostnames:**
+   - Enabled DNS Hostnames in the VPC.
 
-6. **Private Subnets:**
-   - Web servers and database servers are placed in private subnets to enhance security.
+3. **Internet Gateway:**
+   - Set up an Internet Gateway for communication with the internet.
 
-7. **Nat Gateway:**
-   - The Nat Gateway allows instances in private subnets to access the internet securely.
+4. **Subnets and Route Tables:**
+   - Established public and private subnets in two Availability Zones.
+   - Created route tables, associating public subnets with the public route table.
+  
+![VPC Architecture 1](https://github.com/bconway1906/Static-Website-AWS/assets/148906255/eb6c51b1-d82e-47af-9818-7e7a430ecd00)
 
-8. **EC2 Instances:**
-   - EC2 instances host the static HTML website. The instances are part of an Auto Scaling Group (ASG) for high availability.
+5. **NAT Gateway:**
+   - Deployed NAT Gateways in both Availability Zones for internet access in private subnets.
+  
+![Nat_Gateway_Reference_Architecture copy](https://github.com/bconway1906/Static-Website-AWS/assets/148906255/9201ccfc-a8bd-4701-bf9a-ab105076136d)
 
-9. **Application Load Balancer:**
-   - An ALB is used to distribute web traffic across the Auto Scaling Group of EC2 instances in multiple availability zones.
+6. **Security Groups:**
+   - Configured security groups for ALB, SSH, and webservers to control traffic.
+  
+![Security Group](https://github.com/bconway1906/Static-Website-AWS/assets/148906255/898a8a0d-0da8-43e0-b310-21696e527a35)
 
-10. **Auto Scaling Group:**
-    - ASG dynamically creates and manages EC2 instances, ensuring the website is highly available, scalable, fault-tolerant, and elastic.
+7. **Key Pair:**
+   - Generated a key pair for SSH access to instances.
 
-11. **Route 53:**
-    - Route 53 is used to register the domain name and create a record set for the static website.
+8. **Webserver Deployment Script:**
+   - Developed a script to install the website on EC2 instances in private subnets.
+     ```bash
+     #!/bin/bash
+     sudo su
+     yum update -y
+     yum install -y httpd
+     cd /var/www/html
+     wget https://github.com/azeezsalu/jupiter/archive/refs/heads/main.zip
+     unzip main.zip
+     cp -r jupiter-main/* /var/www/html/
+     rm -rf jupiter-main main.zip
+     systemctl enable httpd 
+     systemctl start httpd
+     ```
+     - Explanation:
+        - `sudo su`: Switch to the superuser for executing commands with elevated privileges.
+        - `yum update -y`: Update system packages to the latest versions.
+        - `yum install -y httpd`: Install the Apache web server.
+        - `cd /var/www/html`: Change to the web server directory.
+        - `wget ...`: Download the website files from GitHub.
+        - `unzip ...`: Unzip the downloaded files.
+        - `cp ...`: Copy the unzipped files to the web server directory.
+        - `rm -rf ...`: Remove unnecessary files.
+        - `systemctl enable httpd`: Enable the Apache service to start on boot.
+        - `systemctl start httpd`: Start the Apache service.
 
-12. **GitHub:**
-    - GitHub is used to store web files, allowing for version control and easy deployment.
+9. **Application Load Balancer (ALB):**
+   - Launched EC2 instances in private app subnets and associated them with an ALB.
+   - Configured a target group and associated it with the ALB.
 
-### Deployment Script:
+10. **Route 53:**
+    - Registered a new domain and created a record set to point the domain to the ALB.
 
-```bash
-#!/bin/bash
-sudo su
-yum update -y
-yum install -y httpd
-cd /var/www/html
-wget https://github.com/bconway1906/staticsite/raw/main/static-main.zip
-unzip static-main.zip
-cp -r /var/www/html/static-main/* /var/www/html
-rm -rf static-main.zip static-main
-systemctl enable httpd
-systemctl start httpd
-```
+11. **SSL Certificate:**
+    - Obtained an SSL certificate from AWS Certificate Manager for secure communication.
 
-## Conclusion
+12. **Auto Scaling Group (ASG):**
+    - Created an ASG with a launch template, specifying EC2 configurations.
+    - Configured desired, minimum, and maximum capacities.
+    - Set up notifications and selected an SNS topic.
 
-This project demonstrates a comprehensive setup for hosting a static website on AWS, utilizing various services to achieve high availability, security, and scalability. The provided deployment script simplifies the process of installing and running the web application on EC2 instances. 
+## Project Conclusion:
+
+This project achieved the goal of hosting a static website on AWS with a three-tier architecture. The infrastructure is designed to ensure resilience, scalability, and effective management of web traffic.
+
+   
